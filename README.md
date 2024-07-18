@@ -61,3 +61,4 @@ Determines what hashing algorithm should be used to perform the encryption
 - Allow choice of Avro compression (Snappy, bzip2, etc.)
 - ~~Infer Avro schema if not passed in~~
 - Better unit tests for Avro
+# nifi_custom_json_zip
