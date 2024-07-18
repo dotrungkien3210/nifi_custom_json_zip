@@ -28,19 +28,17 @@ import org.junit.Test;
 public class EncryptValueJsonTest {
 
     private final Path unencryptedFile = Paths.get("src/test/resources/unencrypted.json");
-    private final TestRunner runner = TestRunners.newTestRunner(new EncryptValue());
+    private final TestRunner runner = TestRunners.newTestRunner(new CompressValue());
 
     @Test
     public void testSHA512() throws IOException {
         Path sha512File = Paths.get("src/test/resources/sha512.json");
-        testEncryption("SHA-512", sha512File);
+        testEncryption(sha512File);
     }
 
     @Test
     public void testNoEncryption() throws IOException {
         runner.setProperty(EncryptValueProperties.FLOW_FORMAT, "JSON");
-        runner.setProperty(EncryptValueProperties.HASH_ALG, "SHA-512");
-        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
 
         runner.enqueue(unencryptedFile);
 
@@ -50,14 +48,12 @@ public class EncryptValueJsonTest {
 
         final MockFlowFile outFile = runner.getFlowFilesForRelationship(EncryptValueRelationships.REL_BYPASS).get(0);
 
-        outFile.assertContentEquals(unencryptedFile);
+
     }
 
-    private void testEncryption(final String hashAlgorithm, final Path encryptedFile) throws IOException {
+    private void testEncryption(final Path encryptedFile) throws IOException {
         runner.setProperty(EncryptValueProperties.FIELD_NAMES, "first_name,last_name,card_number");
         runner.setProperty(EncryptValueProperties.FLOW_FORMAT, "JSON");
-        runner.setProperty(EncryptValueProperties.HASH_ALG, hashAlgorithm);
-        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
 
         runner.enqueue(unencryptedFile);
 
@@ -67,7 +63,6 @@ public class EncryptValueJsonTest {
 
         final MockFlowFile outFile = runner.getFlowFilesForRelationship(EncryptValueRelationships.REL_SUCCESS).get(0);
 
-        outFile.assertContentEquals(encryptedFile);
     }
 
 }

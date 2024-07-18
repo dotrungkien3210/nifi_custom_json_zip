@@ -16,7 +16,7 @@
  */
 package com.nineteen04labs.processors.encryptvalue;
 
-import com.nineteen04labs.processors.util.Encryption;
+//import com.nineteen04labs.processors.util.Encryption;
 
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.processor.util.StandardValidators;
@@ -49,23 +49,6 @@ public class EncryptValueProperties {
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .expressionLanguageSupported(true)
             .build();
-    
-    public static final PropertyDescriptor HASH_ALG = new PropertyDescriptor
-            .Builder().name("HASH_ALG")
-            .displayName("Hash Algorithm")
-            .description("Determines what hashing algorithm should be used to perform the encryption.")
-            .required(true)
-            .allowableValues(Encryption.getAvailableAlgorithms())
-            .defaultValue("SHA-512")
-            .build();
 
-    public static final PropertyDescriptor SALT = new PropertyDescriptor
-            .Builder().name("SALT")
-            .displayName("Salt")
-            .description("Salt used in hashing.")
-            .required(false)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .expressionLanguageSupported(true)
-            .build();
 
 }

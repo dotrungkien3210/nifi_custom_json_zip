@@ -33,7 +33,7 @@ import java.util.Set;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.nineteen04labs.processors.util.Encryption;
+import com.nineteen04labs.processors.util.Compression;
 import com.nineteen04labs.processors.util.FormatStream;
 
 import org.apache.avro.Schema;
@@ -51,7 +51,7 @@ import org.apache.nifi.processor.io.StreamCallback;
 
 @Tags({"encrypt", "hash", "json", "pii", "salt"})
 @CapabilityDescription("Encrypts the values of the given fields of a FlowFile. The original value is replaced with the hashed one.")
-public class EncryptValue extends AbstractProcessor {
+public class CompressValue extends AbstractProcessor {
 
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
@@ -62,8 +62,6 @@ public class EncryptValue extends AbstractProcessor {
         descriptors.add(EncryptValueProperties.FLOW_FORMAT);
         descriptors.add(EncryptValueProperties.AVRO_SCHEMA);
         descriptors.add(EncryptValueProperties.FIELD_NAMES);
-        descriptors.add(EncryptValueProperties.HASH_ALG);
-        descriptors.add(EncryptValueProperties.SALT);
         this.descriptors = Collections.unmodifiableList(descriptors);
 
         final Set<Relationship> relationships = new HashSet<Relationship>();
@@ -98,8 +96,6 @@ public class EncryptValue extends AbstractProcessor {
             final List<String> fieldNames = Arrays.asList(rawFieldNames.split(","));
             final String flowFormat = context.getProperty(EncryptValueProperties.FLOW_FORMAT).getValue();
             final String schemaString = context.getProperty(EncryptValueProperties.AVRO_SCHEMA).evaluateAttributeExpressions(flowFile).getValue();
-            final String algorithm = context.getProperty(EncryptValueProperties.HASH_ALG).getValue();
-            final String salt = context.getProperty(EncryptValueProperties.SALT).evaluateAttributeExpressions(flowFile).getValue();
             
             session.write(flowFile, new StreamCallback(){
                 @Override
@@ -138,8 +134,8 @@ public class EncryptValue extends AbstractProcessor {
                                 if ("null".equals(valueToHash))
                                     jsonGen.writeNull();
                                 else {
-                                    String hashedValue = Encryption.hashValue(valueToHash, salt, algorithm);
-                                    jsonGen.writeString(hashedValue);
+                                    byte[] compressValue = Compression.compressString(valueToHash);
+                                    jsonGen.writeBinary(compressValue);
                                 }
                             }
                         }

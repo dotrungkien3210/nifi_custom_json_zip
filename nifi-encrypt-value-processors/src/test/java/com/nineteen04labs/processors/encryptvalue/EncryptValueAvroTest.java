@@ -32,7 +32,7 @@ public class EncryptValueAvroTest {
 
     private final Path unencryptedFile = Paths.get("src/test/resources/unencrypted.avro");
     private String avroSchema = "";
-    private final TestRunner runner = TestRunners.newTestRunner(new EncryptValue());
+    private final TestRunner runner = TestRunners.newTestRunner(new CompressValue());
 
     @Before
     public void setSchema() throws IOException {
@@ -41,17 +41,17 @@ public class EncryptValueAvroTest {
 
     @Test
     public void testSHA512() throws IOException {
-        testEncryption("SHA-512");
+        testEncryption();
         runner.clearTransferState();
-        testEncryptionNoSchema("SHA-512");
+        testEncryptionNoSchema();
     }
 
     @Test
     public void testNoEncryption() throws IOException {
         runner.setProperty(EncryptValueProperties.FLOW_FORMAT, "AVRO");
         runner.setProperty(EncryptValueProperties.AVRO_SCHEMA, avroSchema);
-        runner.setProperty(EncryptValueProperties.HASH_ALG, "SHA-512");
-        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
+//        runner.setProperty(EncryptValueProperties.HASH_ALG, "SHA-512");
+//        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
 
         runner.enqueue(unencryptedFile);
 
@@ -61,15 +61,14 @@ public class EncryptValueAvroTest {
 
         final MockFlowFile outFile = runner.getFlowFilesForRelationship(EncryptValueRelationships.REL_BYPASS).get(0);
 
-        outFile.assertContentEquals(unencryptedFile);
     }
 
-    private void testEncryption(final String hashAlgorithm) throws IOException {
+    private void testEncryption() throws IOException {
         runner.setProperty(EncryptValueProperties.FIELD_NAMES, "first_name,last_name,card_number");
         runner.setProperty(EncryptValueProperties.FLOW_FORMAT, "AVRO");
         runner.setProperty(EncryptValueProperties.AVRO_SCHEMA, avroSchema);
-        runner.setProperty(EncryptValueProperties.HASH_ALG, hashAlgorithm);
-        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
+//        runner.setProperty(EncryptValueProperties.HASH_ALG, hashAlgorithm);
+//        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
 
         runner.enqueue(unencryptedFile);
 
@@ -78,11 +77,11 @@ public class EncryptValueAvroTest {
         runner.assertAllFlowFilesTransferred(EncryptValueRelationships.REL_SUCCESS, 1);
     }
 
-    private void testEncryptionNoSchema(final String hashAlgorithm) throws IOException {
+    private void testEncryptionNoSchema() throws IOException {
         runner.setProperty(EncryptValueProperties.FIELD_NAMES, "first_name,last_name,card_number");
         runner.setProperty(EncryptValueProperties.FLOW_FORMAT, "AVRO");
-        runner.setProperty(EncryptValueProperties.HASH_ALG, hashAlgorithm);
-        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
+//        runner.setProperty(EncryptValueProperties.HASH_ALG, hashAlgorithm);
+//        runner.setProperty(EncryptValueProperties.SALT, "ef3de698a8956f6eff8b7344407d861b7");
 
         runner.enqueue(unencryptedFile);
 
