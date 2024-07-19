@@ -1,8 +1,7 @@
-# Nén trường Json
+# Chỉnh sửa một trường trong Json
 
 <aside>
-💡 Với những trường có datatype dạng clob (large paragraph), đang được report là không được hỗ trợ khi transform. Ta mong muốn viết một custom processor để xử lý
-
+💡 Ta muốn thực hiện một action trên một đoạn text một cách nhanh chóng, dễ dàng hơn hiện tại
 </aside>
 
 Mục đích:
@@ -12,9 +11,13 @@ Processor này được viết để xử lý một trường cụ thể chứa 
 ## Parameter
 
 `FLOW_FORMAT`: Cái này chỉ bản ghi đầu vào sẽ có format như thế nào, hiện tại đang chấp nhận 2 format là AVRO và JSON
+
 `AVRO_SCHEMA` schema json để kiểm tra xem bản ghi đầu vào liệu đã đủ số trường, nếu không đủ thì sẽ không xử lý
+
 `FIELD_NAMES` : Trường trong json mà cần phải thực hiện action trên nó,hiện tại đang chỉ support cho các action dạng String
+
 `ACTION` : hoạt động thực hiện trên paragraph hiện tại, hiện đang chấp nhận 2 input là `Replace`  và `Substring`
+
 `FIRST_INPUT` : input đầu tiên cần điền vào
 
 `SECOND_INPUT` : input thứ 2 cần điền vào
@@ -49,3 +52,9 @@ Start/Restart Nifi
 ```
 $NIFI_HOME/bin/nifi.sh start
 ```
+
+## reference
+Đoạn code này được clone và chỉnh sửa từ đoạn code gốc 
+
+
+https://github.com/1904labs/nifi-encrypt-value-bundle
