@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.nineteen04labs.processors.encryptvalue;
+package com.nifi.processors.encryptvalue;
 
 import org.apache.nifi.processor.Relationship;
 
-public class EncryptValueRelationships {
+public class FlowfileRelationships {
 
         public static final Relationship REL_SUCCESS = new Relationship.Builder()
                 .name("success")

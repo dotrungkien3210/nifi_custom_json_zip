@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.nineteen04labs.processors.encryptvalue;
+package com.nifi.processors.encryptvalue;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -33,8 +33,8 @@ import java.util.Set;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.nineteen04labs.processors.util.Compression;
-import com.nineteen04labs.processors.util.FormatStream;
+import com.nifi.processors.util.ModifyAction;
+import com.nifi.processors.util.FormatStream;
 
 import org.apache.avro.Schema;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
@@ -51,7 +51,7 @@ import org.apache.nifi.processor.io.StreamCallback;
 
 @Tags({"encrypt", "hash", "json", "pii", "salt"})
 @CapabilityDescription("Encrypts the values of the given fields of a FlowFile. The original value is replaced with the hashed one.")
-public class CompressValue extends AbstractProcessor {
+public class ModifyValue extends AbstractProcessor {
 
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
@@ -59,15 +59,18 @@ public class CompressValue extends AbstractProcessor {
     @Override
     protected void init(final ProcessorInitializationContext context) {
         final List<PropertyDescriptor> descriptors = new ArrayList<PropertyDescriptor>();
-        descriptors.add(EncryptValueProperties.FLOW_FORMAT);
-        descriptors.add(EncryptValueProperties.AVRO_SCHEMA);
-        descriptors.add(EncryptValueProperties.FIELD_NAMES);
+        descriptors.add(FlowfileProperties.FLOW_FORMAT);
+        descriptors.add(FlowfileProperties.AVRO_SCHEMA);
+        descriptors.add(FlowfileProperties.FIELD_NAMES);
+        descriptors.add(FlowfileProperties.ACTION);
+        descriptors.add(FlowfileProperties.FIRST_INPUT);
+        descriptors.add(FlowfileProperties.SECOND_INPUT);
         this.descriptors = Collections.unmodifiableList(descriptors);
 
         final Set<Relationship> relationships = new HashSet<Relationship>();
-        relationships.add(EncryptValueRelationships.REL_SUCCESS);
-        relationships.add(EncryptValueRelationships.REL_FAILURE);
-        relationships.add(EncryptValueRelationships.REL_BYPASS);
+        relationships.add(FlowfileRelationships.REL_SUCCESS);
+        relationships.add(FlowfileRelationships.REL_FAILURE);
+        relationships.add(FlowfileRelationships.REL_BYPASS);
         this.relationships = Collections.unmodifiableSet(relationships);
     }
 
@@ -88,14 +91,17 @@ public class CompressValue extends AbstractProcessor {
             return;
         }
         try {
-            final String rawFieldNames = context.getProperty(EncryptValueProperties.FIELD_NAMES).evaluateAttributeExpressions(flowFile).getValue();
+            final String rawFieldNames = context.getProperty(FlowfileProperties.FIELD_NAMES).evaluateAttributeExpressions(flowFile).getValue();
             if ("".equals(rawFieldNames) || rawFieldNames == null) {
-                session.transfer(flowFile, EncryptValueRelationships.REL_BYPASS);
+                session.transfer(flowFile, FlowfileRelationships.REL_BYPASS);
                 return;
             }
             final List<String> fieldNames = Arrays.asList(rawFieldNames.split(","));
-            final String flowFormat = context.getProperty(EncryptValueProperties.FLOW_FORMAT).getValue();
-            final String schemaString = context.getProperty(EncryptValueProperties.AVRO_SCHEMA).evaluateAttributeExpressions(flowFile).getValue();
+            final String flowFormat = context.getProperty(FlowfileProperties.FLOW_FORMAT).getValue();
+            final String action = context.getProperty(FlowfileProperties.ACTION).getValue();
+            final String firstInput = context.getProperty(FlowfileProperties.FIRST_INPUT).getValue();
+            final String secondInput = context.getProperty(FlowfileProperties.SECOND_INPUT).getValue();
+            final String schemaString = context.getProperty(FlowfileProperties.AVRO_SCHEMA).evaluateAttributeExpressions(flowFile).getValue();
             
             session.write(flowFile, new StreamCallback(){
                 @Override
@@ -130,12 +136,21 @@ public class CompressValue extends AbstractProcessor {
                             String key = jsonParser.getCurrentName();
                             if(fieldNames.stream().anyMatch(field -> field.equalsIgnoreCase(key))) {
                                 jsonParser.nextToken();
-                                String valueToHash = jsonParser.getText();
-                                if ("null".equals(valueToHash))
+                                String affectValue = jsonParser.getText();
+                                if ("null".equals(affectValue))
                                     jsonGen.writeNull();
                                 else {
-                                    byte[] compressValue = Compression.compressString(valueToHash);
-                                    jsonGen.writeBinary(compressValue);
+                                    String outputValue = "";
+                                    if (action.equals("Replace")){
+                                        outputValue = affectValue.replace(firstInput,secondInput);
+                                    }
+                                    else if(action.equals("Substring")){
+                                        outputValue = affectValue.substring(Integer.parseInt(firstInput),Integer.parseInt(secondInput));
+                                    }
+                                    else {
+                                        outputValue = "Error";
+                                    }
+                                    jsonGen.writeString(outputValue);
                                 }
                             }
                         }
@@ -150,11 +165,11 @@ public class CompressValue extends AbstractProcessor {
                 }
             });
             
-            session.transfer(flowFile, EncryptValueRelationships.REL_SUCCESS);
+            session.transfer(flowFile, FlowfileRelationships.REL_SUCCESS);
 
         } catch (ProcessException e) {
             getLogger().error("Something went wrong", e);
-            session.transfer(flowFile, EncryptValueRelationships.REL_FAILURE);
+            session.transfer(flowFile, FlowfileRelationships.REL_FAILURE);
         }
     }
 }

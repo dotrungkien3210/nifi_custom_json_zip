@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.nineteen04labs.processors.util;
+package com.nifi.processors.util;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

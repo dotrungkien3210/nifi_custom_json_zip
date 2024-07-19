@@ -1,64 +1,51 @@
-# nifi-encrypt-value-bundle
+# Nén trường Json
 
-NiFi processor to encrypt JSON values. Encrypts the values of the given fields of a FlowFile. The original value is replaced with the hashed one.
+<aside>
+💡 Với những trường có datatype dạng clob (large paragraph), đang được report là không được hỗ trợ khi transform. Ta mong muốn viết một custom processor để xử lý
 
-## Deploy Bundle
+</aside>
+
+Mục đích:
+
+Processor này được viết để xử lý một trường cụ thể chứa thông tin dạng string thông qua hoạt động kéo thả của nifi.
+
+## Parameter
+
+`FLOW_FORMAT`: Cái này chỉ bản ghi đầu vào sẽ có format như thế nào, hiện tại đang chấp nhận 2 format là AVRO và JSON
+`AVRO_SCHEMA` schema json để kiểm tra xem bản ghi đầu vào liệu đã đủ số trường, nếu không đủ thì sẽ không xử lý
+`FIELD_NAMES` : Trường trong json mà cần phải thực hiện action trên nó,hiện tại đang chỉ support cho các action dạng String
+`ACTION` : hoạt động thực hiện trên paragraph hiện tại, hiện đang chấp nhận 2 input là `Replace`  và `Substring`
+`FIRST_INPUT` : input đầu tiên cần điền vào
+
+`SECOND_INPUT` : input thứ 2 cần điền vào
+
+Ví dụ như với Action là Replace thì có thể điền First_input là “Đoạn String cần replace” và Second_input là “đoạn String sẽ được thay thế”
+
+## **Deploy**
 
 Clone this repository
 
-```shell
-git clone https://github.com/1904labs/nifi-encrypt-value-bundle
+```
+git clone git@github.com:dotrungkien3210/nifi_custom_json_zip.git
 ```
 
-Build the bundle
 
-```shell
-cd nifi-encrypt-value-bundle
+Build
+
+```
 mvn validate
 mvn clean package
 ```
 
-Copy Nar file to $NIFI_HOME/lib
+Copy Nar file tới thư mục l $NIFI_HOME/lib
 
-```shell
-cp nifi-encrypt-value-bundle/target/nifi-encrypt-value-nar-$version.nar $NIFI_HOME/lib/
+```
+cp nifi-modify-value-bundle/target/nifi-modify-value-nar-$version.nar $NIFI_HOME/lib/
+
 ```
 
 Start/Restart Nifi
 
-```shell
+```
 $NIFI_HOME/bin/nifi.sh start
 ```
-
-## Processor properties
-
-__FlowFile Format__
-Specify the format of the incoming FlowFile. If AVRO, output is automatically Snappy compressed.
-
-__Avro Schema__
-Specify the schema if the FlowFile format is Avro.
-
-__Field Names__
-Comma separated list of fields whose values to encrypt.
-
-__Hash Algorithm__
-Determines what hashing algorithm should be used to perform the encryption
-
-### Notes
-
-- The incoming FlowFile is expected to be one JSON per line.
-- If the `Field Names` property is not set, the processor automatically sends the FlowFile to the `bypass` relationship.
-- Avro is always Snappy compressed on output.
-- This processor uses a [custom Avro library](https://github.com/zolyfarkas/avro) in order to handle Avro's union types. Until [this issue](https://issues.apache.org/jira/browse/AVRO-1582) is resolved, it will continue to use the custom library.
-
-
-### TODO
-
-- ~~Add support for Avro files~~
-- ~~Support multi-level JSON~~
-- ~~Add support for more hashing algorithms~~
-- ~~Support salting~~
-- Allow choice of Avro compression (Snappy, bzip2, etc.)
-- ~~Infer Avro schema if not passed in~~
-- Better unit tests for Avro
-# nifi_custom_json_zip
